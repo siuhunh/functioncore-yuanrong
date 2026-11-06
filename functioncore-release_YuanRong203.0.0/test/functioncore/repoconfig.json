@@ -1,0 +1,117 @@
+{
+  "authenticationEnable": false,
+  "etcd": {
+    "url": ["100.107.90.218:32379"],
+    "username": "root",
+    "password": "484faae6d1e6432238e589da:8a883f99c0d806bb899415d34b45cf4cce705ecb5c77465039d7",
+    "caFilePath": "/home/sn/resource/ca/ca.pem",
+    "sslEnable": false,
+    "keyword":{
+      "funcPrefix": "/sn/functions",
+      "aliasPrefix": "",
+      "triggerPrefix": "/sn/triggers",
+      "businessKeyword": "business",
+      "tenantKeyword": "tenant",
+      "resourceKeyword": "function",
+      "aliasKeyword": "",
+      "versionKeyword": "version",
+      "triggerTypeKeyword": "triggerType",
+      "chainPrefix": "/sn/functionchains"
+    }
+  },
+  "function": {
+    "default": {
+      "version": "$latest",
+      "envPrefix": "func-",
+      "pageIndex": 1,
+      "pageSize": 1000,
+      "cpuList": [
+        500,
+        1500,
+        4000
+      ],
+      "memoryList": [
+        500,
+        3000,
+        16000
+      ],
+      "timeout": 900,
+      "defaultMinInstance": "10",
+      "defaultMaxInstance": "1000",
+      "defaultConcurrentNum": "100",
+      "maxInstanceUpperLimit": "1000",
+      "concurrentNumUpperLimit": "100"
+    },
+    "package": {
+      "uploadTempPath": "/tmp",
+      "zipFileSizeMaxMB": 50,
+      "unzipFileSizeMaxMB": 100,
+      "fileCountsMax": 30000,
+      "dirDepthMax": 20,
+      "ioReadTimeout": 100000
+    },
+    "versionMax": 8,
+    "aliasMax": 8,
+    "layerMax": 8
+  },
+  "bucket": [
+    {
+      "bucketId": "bucket-test-log1",
+      "businessId": "yrk",
+      "appId": "61022",
+      "appSecret": "E8305B6B5802595E198B82985F61014E:85D87E1102D94A246C58F8A0DCC829B99A88DCA6F5DDAA658CEE0C27D60385F984FC2F3035067A038280C7F62BE57AE9",
+      "url": "http://bucket-test-log1.hwcloudtest.cn:18085",
+      "writable": 1,
+      "description": "11",
+      "createTime": "2019-04-24 18:15:53",
+      "updateTime": "2019-04-24 18:15:53"
+    }
+  ],
+  "runtimeType": [
+    "nodejs10.15.2",
+    "java1.8",
+    "python3.7",
+    "python3.8",
+    "cpp11",
+    "cpp11-bin",
+    "custom-runtime"
+  ],
+  "fileServer": {
+    "storageType": "local",
+    "s3": {
+      "endpoint": "100.107.90.218:30110",
+      "accessKey": "root",
+      "secretKey": "d8e4ca5afa68fe4484bd5157:fee96488f404d01f96b670df36c746d1ebdd004a6d15c6bd5654",
+      "secure": false,
+      "presignedUrlExpires": 3600,
+      "timeout": 40000
+    }
+  },
+  "trigger": {
+    "urlPrefix": "http://100.107.90.218:30049/service/",
+    "type": [
+      {
+        "sourceProvider": "aa",
+        "effect": "bb",
+        "action": "cc"
+      }
+    ]
+  },
+  "compatibleRuntimeType": [
+    "nodejs10.15.2",
+    "java1.8",
+    "python3.7",
+    "python3.8",
+    "cpp11",
+    "cpp11-bin",
+    "custom-runtime"
+  ],
+  "urn": {
+    "prefix": "sn",
+    "zone": "cn",
+    "resourceType": "function"
+  },
+  "server": {
+    "port": 8081
+  }
+}

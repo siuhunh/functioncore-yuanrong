@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rancher>
+    <nic_name>eth0</nic_name>
+    <local_ip>localip</local_ip>
+    <rancher_http>8082</rancher_http>
+    <rancher_https>8146</rancher_https>
+    <rancher_password>huawei</rancher_password>
+    <!-- nfs -->
+    <nfs_serverip>localip</nfs_serverip>
+    <!-- prometheus -->
+    <prometheus_ip>localip</prometheus_ip>
+    <!-- redis password -->
+    <redis_password>password</redis_password>
+    <!-- S3 accessKey -->
+    <S3_AK>accessKey</S3_AK>
+    <!-- S3 secretKey -->
+    <S3_SK>secretKey</S3_SK>
+    <!-- core_etcd password of user root -->
+    <core_etcd_password>password</core_etcd_password>
+    <!-- keycloak password of user admin -->
+    <keycloak_password>password</keycloak_password>
+</rancher>

@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package invoke;
+
+option go_package = "api/invoke";
+
+option java_package = "com.huawei.sn.msgstruct";
+option java_outer_classname = "Invoke";
+
+message RequestPb {
+    string funcName = 1;
+    string version = 2;
+    string payload = 3;
+    bool byKey = 4;
+    string key = 5;
+    string stateID = 6;
+    int32 countOfFuncName = 7;
+    bool callKernel = 8;
+    map<string, int32> requestAttributes = 9;
+}
+
+message ResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string stateID = 3;
+    string futureID = 4;
+    bytes dcCallStack = 5;
+}
+
+message TaskRequestPb {
+    string funcName = 1;
+    string version = 2;
+    string payload = 3;
+    string stateID = 4;
+    string futureID = 5;
+    bool createStateQueue = 6;
+    string stateKey = 7;
+}
+
+message TaskResponsePb {
+    int32 code = 1;
+    string message = 2;
+    bytes dcCallStack = 3;
+}
+
+message TaskCrateStateQueueRequestPb {
+    string stateID = 1;
+}
+
+message OnCompleteRequestPb {
+    string funcName = 1;
+    string version = 2;
+    string stateID = 3;
+    string futureID = 4;
+    int32 countOfFuncName = 5;
+}

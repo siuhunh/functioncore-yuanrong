@@ -1,0 +1,22 @@
+# 使用镜像
+image: "kibana"
+# 集群地址
+elasticsearchHosts: "http://es-aka-client:9200"
+# 添加配置
+kibanaConfig:
+  kibana.yml: |
+    #  设置 kibana 简体中文
+    i18n.locale: "zh-CN"
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+# 否 SSH 开启改为 https 确保集群也是 https
+protocol: http
+# 服务设置
+service:
+  type: NodePort
+  nodePort: 32325

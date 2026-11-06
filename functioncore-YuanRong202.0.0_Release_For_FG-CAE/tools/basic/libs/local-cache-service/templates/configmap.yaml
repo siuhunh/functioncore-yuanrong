@@ -1,0 +1,78 @@
+# Copyright (c) 2021 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-cache-service-config
+data:
+  conf.templates: |
+    worker_processes  4;
+    error_log  /var/log/nginx/error.log warn;
+    pid        /tmp/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for" "$upstream_cache_status"';
+
+        access_log  /var/log/nginx/access.log  main;
+    	proxy_cache_path /var/cache/nginx/proxy-cache levels=1:2 keys_zone=cache_minio:500m max_size=5g inactive=5d use_temp_path=off;
+
+        sendfile        on;
+        #tcp_nopush     on;
+
+        keepalive_timeout  65;
+
+        server {
+            listen  ${POD_IP}:9000 ;
+            server_name _;
+
+            access_log  /var/log/nginx/access.log  main;
+
+            location / {
+              proxy_set_header Host $http_host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_set_header X-Forwarded-Host $http_host;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+              #Enables or disables the conversion of the "HEAD" method to "GET" for caching
+              proxy_cache_convert_head off;
+              add_header x-cache-hit $upstream_cache_status;
+              proxy_cache cache_minio;
+              proxy_cache_key $request_method$uri$is_args$args;
+              proxy_cache_valid 200 304 36h;
+              proxy_cache_valid   any 10m;
+              proxy_ignore_headers Cache-Control;
+              proxy_pass http://${ADDR};
+            }
+
+            error_page   500 502 503 504  /50x.html;
+            location = /50x.html {
+                root   /usr/share/nginx/html;
+            }
+
+            location /healthz {
+                 stub_status on;
+                 access_log off;
+            }
+        }
+    }

@@ -1,0 +1,16 @@
+{
+    "config-key": {
+        "description": "config-key",
+        "keys": {
+            "key": "1b1fed2f70a540faa7d36bf240189a7d:9f99d758f7b07e763b5b725ce96e75990077f3ac7738dfc04d4faea46273a2384273ba28a4d2ba6cf2513046171938ea",
+            "mac": "d682ad90f9157d9ee29635818e9f019208589d04cdd6f7ac4d5953b4145e0431"
+        }
+    },
+    "yaml-key": {
+        "description": "yaml-key",
+        "keys": {
+            "key": "59317db691f342898e0dbfa49e90e468:fb788904ee5bd5b14402210ab51408b573efd8c299ee3ac13488e158c4459f14a191ee09f82cc1d2bb5ce5dbfba6d5ce",
+            "mac": "0d174e79064af6d9e706ab8ce16d3d32f7408048dc4434f8ddbf86372ac485e0"
+        }
+    }
+}

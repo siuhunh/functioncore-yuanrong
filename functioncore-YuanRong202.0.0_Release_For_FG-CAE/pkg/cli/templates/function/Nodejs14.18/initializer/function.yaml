@@ -1,0 +1,15 @@
+function:
+  name: helloworld
+  service: default
+  handler: index.handler
+  userData:
+    key1: value1
+    key2: value2
+  runtime: Nodejs14.18
+  memorySize: 128
+  timeout: 3
+  minInstance: 0
+  maxInstance: 400
+  concurrentNum: 1
+  initializerHandler: index.initializer
+  initializerTimeout: 3

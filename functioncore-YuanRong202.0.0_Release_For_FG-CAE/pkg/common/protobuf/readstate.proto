@@ -1,0 +1,36 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package readstate;
+
+option go_package = "api/readstate";
+
+option java_package = "com.huawei.sn.msgstruct";
+option java_outer_classname = "ReadState";
+
+message RequestPb {
+    bool byKey = 1;
+    string key = 2;
+    string stateID = 3;
+    string funcName = 4;
+}
+
+message ResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string state = 3;
+}

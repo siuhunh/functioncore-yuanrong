@@ -1,0 +1,107 @@
+{
+    "function": {
+        "Java8": [
+            {
+                "directory": "function/Java8/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Java8/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Python3.6": [
+            {
+                "directory": "function/Python3.6/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Python3.6/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Python3.9": [
+            {
+                "directory": "function/Python3.9/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Python3.9/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Python2.7": [
+            {
+                "directory": "function/Python2.7/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Python2.7/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Nodejs6.10": [
+            {
+                "directory": "function/Nodejs6.10/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            }
+        ],
+        "Nodejs8.10": [
+            {
+                "directory": "function/Nodejs8.10/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Nodejs8.10/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Nodejs10.16": [
+            {
+                "directory": "function/Nodejs10.16/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Nodejs10.16/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Nodejs12.13": [
+            {
+                "directory": "function/Nodejs12.13/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Nodejs12.13/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ],
+        "Nodejs14.18": [
+            {
+                "directory": "function/Nodejs14.18/helloworld",
+                "description": "hello Example",
+                "templateName": "hello-world"
+            },
+            {
+                "directory": "function/Nodejs14.18/initializer",
+                "description": "initializer Example",
+                "templateName": "initializer"
+            }
+        ]
+    }
+}

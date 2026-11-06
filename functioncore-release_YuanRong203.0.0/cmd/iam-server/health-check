@@ -1,0 +1,15 @@
+#!/bin/bash
+# Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+
+function health_check() {
+  local port=$1
+  local dest=$2
+  local addr="${POD_IP}:${port}"
+  local node_id=${NODE_ID}
+  local ret_code=$(LD_LIBRARY_PATH="" timeout 3 curl -s -m 3 -H "Node-ID:${NODE_ID}" -H "PID:1" "http://${addr}/${dest}/healthy" -w %{http_code};echo $?)
+  if [ "x${ret_code:0:3}" != "x200" ]; then
+    exit 1
+  fi
+}
+
+health_check "$@"

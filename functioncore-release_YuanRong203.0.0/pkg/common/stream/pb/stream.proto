@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. proto/stream.proto
+package proto;
+
+// streamhandler/workflow/runtime要使用相同的stream.proto副本,除了go_package以外要完全相同
+option go_package = "stream/pb";
+
+message StreamRequest {
+    bytes stream = 1;
+}
+
+message StreamResponse {
+    bytes stream = 1;
+}
+
+service StreamHandler {
+    rpc send(stream StreamRequest) returns (StreamResponse) {}
+    rpc receive(StreamRequest) returns (stream StreamResponse) {}
+    rpc sendHeader(stream StreamRequest) returns (StreamResponse) {}
+    rpc receiveHeader(StreamRequest) returns (stream StreamResponse) {}
+}

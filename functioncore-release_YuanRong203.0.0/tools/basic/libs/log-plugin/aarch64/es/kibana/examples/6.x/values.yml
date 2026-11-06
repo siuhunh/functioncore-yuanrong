@@ -1,0 +1,4 @@
+---
+
+imageTag: 7.9.1
+elasticsearchHosts: "http://six-master:9200"

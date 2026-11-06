@@ -1,0 +1,74 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: es-index-delete
+  namespace: default
+spec:
+  schedule: "0 */1 * * *"
+  jobTemplate:
+    spec: 
+      completions: 1
+      parallelism: 1
+      template:
+        spec:
+          containers:
+          - name: es-index-delete-centos
+            image: centos:latest
+            imagePullPolicy: IfNotPresent
+            args:
+            - /bin/bash
+            - -c
+            - >
+              DELTIME=7; 
+              THRESHOLD=70; 
+              INDEX_PRFIX="function|system|console";
+              SERVER_PORT=http://es-aka-client:9200;
+
+              indexs=$(curl -s "${SERVER_PORT}/_cat/indices?v" | grep -E "${INDEX_PRFIX}" | awk '{print $3}');
+              seconds=$(date -d "$(date +%F) - ${DELTIME} days" +%s);
+              for del_index in ${indexs};
+              do  
+                index_date=$(echo ${del_index} | cut -d "-" -f 2);
+                index_date_format=$(echo ${index_date//./-});
+                index_second=$(date -d ${index_date_format} +%s);
+                echo "Check index ${del_index}";
+                if [ $(( $seconds-$index_second )) -gt 0 ]
+                then
+                  del_mes=$(curl -XDELETE ${SERVER_PORT}/${del_index});
+                  echo "Delete index ${del_index}, result: ${del_mes}"
+                  sleep 5;
+                fi
+              done;
+
+              while true;
+              do
+                percents=$(curl -s "${SERVER_PORT}/_cat/allocation?v" | grep "es-aka-data" | awk '{print $6}');
+                sum=0;
+                for percent in ${percents};
+                do
+                  let sum=sum+${percent};
+                done
+                let average=$sum/${#percents[*]};
+                echo "Average es disk usage ${average}%";
+                if [ $(( $average - $THRESHOLD )) -gt 0 ]
+                then
+                  echo "start clean es disk";
+                  indexs=$(curl -s "${SERVER_PORT}/_cat/indices?v" | grep -E "${INDEX_PRFIX}" | awk '{print $3}' |
+                         sort -t "-" -k 2);
+                  array=(`echo $indexs | tr ',' ' '`)
+                  if [ ${#array[*]} -ge 2 ]
+                  then
+                    del_mes=$(curl -XDELETE ${SERVER_PORT}/${array});
+                    echo "Delete index ${array}, result: ${del_mes}"
+                    sleep 5;
+                  else
+                    echo "No indexes to delete"
+                    break;
+                  fi
+                else 
+                  echo "Disk does not need to be cleaned"
+                  break;
+                fi
+              done;
+          restartPolicy: Never
+      backoffLimit: 5

@@ -1,0 +1,93 @@
+---
+version: 2.0
+
+# build directory:/usr1
+buildspace:
+  fixed: true
+
+# env
+env:
+  resource:
+    type: "docker"
+    image: szvecr02.his.huawei.com:80/ecr-build/euleros_v200r010c00spc101b210_x86_64_yuanrong:v1.1
+    class: 16U32G
+
+# product
+params:
+  - name: product
+    value: cloudbuild2.0
+
+# build
+steps:
+  PRE_BUILD:
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/functioncore.git
+        branch: ${download_branch_yuanrong}
+        path: functioncore
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/runtime-nodejs.git
+        branch: ${download_branch_yuanrong}
+        path: runtime-nodejs
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/runtime-java.git
+        branch: ${download_branch_yuanrong}
+        path: runtime-java
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/runtime-python.git
+        branch: ${download_branch_yuanrong}
+        path: runtime-python
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/runtime-python2.git
+        branch: ${download_branch_yuanrong}
+        path: runtime-python2
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/runtime-php.git
+        branch: ${download_branch_yuanrong}
+        path: runtime-php
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/workflow.git
+        branch: ${download_branch_yuanrong}
+        path: workflow
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/event-bridge.git
+        branch: ${download_branch_yuanrong}
+        path: event-bridge
+    - codehub:
+        url: https://szv-y.codehub.huawei.com/YuanRong_Kernel/deployment.git
+        branch: ${download_branch_yuanrong}
+        path: deployment
+    - sh:
+        command: |
+          sed -i "s#YuanRong_101#YuanRong ${HARES_RELEASE_VERSION}#g" functioncore/.cloudbuild/cmc.xml
+  BUILD:
+    - build_execute:
+        command: |
+          bash functioncore/build/build.sh -m all
+          bash workflow/build/build.sh
+          bash event-bridge/build.sh
+          bash deployment/helm-build/build.sh -m functioncore
+          bash workflow/build/helm-build/build.sh
+          bash functioncore/build/package.sh
+        check:
+          auto: true
+          dangerouscmd: true
+          compileoption: true
+          cmcdependency: true
+          buildcheck:
+            project_dir: functioncore;runtime-java;runtime-python;runtime-python2;runtime-nodejs;runtime-php;workflow;event-bridge;deployment;
+            exclude_dir: event-bridge/test/;event-bridge/third_party;event-bridge/output;deployment/test;deployment/helm-build/sources;functioncore/build/helm-build/sources;functioncore/test;functioncore/tools;workflow/test;workflow/build/helm-build/sources;runtime-python/test;runtime-python/runtime/python;runtime-python/fdk/python;functioncore/build/docker_build.sh;functioncore/pkg;runtime-python2/test;runtime-python2/runtime/python;runtime-python2/fdk/python;
+          ruleset: default
+          task_name: FunctionGraph_VersionBuild_EulerOSV2R10_buildcheck
+  POST_BUILD:
+    - compile_report:
+        compiler: javac
+    - artget:
+        artifact_type: cmcbinary
+        action: push
+        add_source_code: true
+        add_env_image: true
+        dependency: functioncore/.cloudbuild/cmc.xml
+        version_output_path: .
+        agent: ./
+        username: ${username}
+        password: ${password}

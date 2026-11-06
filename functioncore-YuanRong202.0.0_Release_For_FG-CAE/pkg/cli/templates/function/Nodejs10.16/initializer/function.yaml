@@ -1,0 +1,15 @@
+function:
+  name: initializer
+  service: default
+  handler: index.handler
+  userData:
+    key1: value1
+    key2: value2
+  runtime: Nodejs10.16
+  memorySize: 128
+  timeout: 3
+  minInstance: 0
+  maxInstance: 400
+  concurrentNum: 1
+  initializerHandler: index.initializer
+  initializerTimeout: 3

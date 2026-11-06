@@ -1,0 +1,173 @@
+# Copyright (c) 2023 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+FROM fusion:1.0
+
+ARG WORK_DIR
+# runtime env
+ENV USER_UID=1003 \
+    USER_NAME=snuser \
+    GROUP_ID=1003 \
+    GROUP_NAME=snuser \
+    HOME=/home/snuser \
+    NODEJS_BIN_PATH=/usr/local/lib/nodejs \
+    PYTHON3_BIN_PATH=/opt/python3.6 \
+    JAVA_BIN_PATH=/opt/huawei/jre1.8.0_272 \
+    DEPLOY_DIR=${WORK_DIR} \
+    LANG=en_US.UTF-8
+
+# the second digit is set to 5, which gives the custom UID and GID permission to run a new runtime process
+RUN mkdir -m 550 ${HOME} && \
+    mkdir -m 550 ${HOME}/runtime && \
+    mkdir -m 550 ${HOME}/config && \
+    mkdir -m 550 ${HOME}/runtime/utils && \
+    mkdir -m 550 ${HOME}/runtime/python2.7 && \
+    mkdir -m 550 ${HOME}/runtime/python3.6 && \
+    mkdir -m 550 ${HOME}/runtime/python3.9 && \
+    mkdir -m 550 ${HOME}/runtime/python3.10 && \
+    mkdir -m 500 ${HOME}/bin && \
+    mkdir -m 500 ${HOME}/bin/fastfreeze && \
+    mkdir -m 750 ${HOME}/log && \
+    mkdir -m 750 ${HOME}/.local && \
+    mkdir -p /opt/huawei/image && \
+    mkdir -m 777 ${HOME}/.datasystem && \
+    mkdir -m 777 ${HOME}/.datasystem/jni && \
+    chown -R ${USER_UID}:${GROUP_ID} /opt/huawei && \
+    chmod 755 -R /opt/huawei && \
+    chown -R ${USER_UID}:${GROUP_ID} /tmp && \
+    groupadd -g ${GROUP_ID} ${GROUP_NAME} && \
+    useradd -u ${USER_UID} -g ${GROUP_ID} -s /sbin/nologin ${USER_NAME} && \
+    chown -R ${USER_UID}:${GROUP_ID} ${HOME}
+
+# nodejs
+COPY --chown=1003:1003 nodejsruntime/bin/entrypoint_runtime_nodejs ${HOME}/bin/entrypoint
+COPY --chown=1003:1003 nodejsruntime/pkg/runtime/nodejs ${HOME}/runtime
+COPY --chown=1003:1003 nodejsruntime/pkg/runtime/nodejs/functionsdk.js /node_modules/functionsdk/
+COPY --chown=1003:1003 nodejsruntime/pkg/runtime/nodejs/functionsdk/package.json /node_modules/functionsdk/
+COPY --chown=1003:1003 nodejsruntime/fdk/nodejs/util /node_modules/function-javascript-sdk/util
+COPY --chown=1003:1003 nodejsruntime/fdk/nodejs/index.js /node_modules/function-javascript-sdk
+COPY --chown=1003:1003 nodejsruntime/fdk/nodejs/*_pb.js /node_modules/function-javascript-sdk/
+COPY --chown=1003:1003 nodejsruntime/fdk/nodejs/node_modules /node_modules/
+COPY --chown=1003:1003 nodejsruntime/fdk/nodejs/package.json /node_modules/function-javascript-sdk
+COPY --chown=1003:1003 nodejsruntime/nodejs-runtime-log.json ${HOME}/config/
+
+# python log config
+COPY --chown=1003:1003 pythonruntime/python-runtime-log.json ${HOME}/config/python-runtime-log.json
+
+# python2.7
+COPY --chown=1003:1003 pythonruntime/pkg/runtime/python27 ${HOME}/runtime/python2.7
+
+# python3.6
+COPY --chown=1003:1003 pythonruntime/fdk/python ${HOME}/runtime/python3.6
+COPY --chown=1003:1003 pythonruntime/pkg/runtime/python3 ${HOME}/runtime/python3.6
+COPY --chown=1003:1003 pythonruntime/fn/ ${HOME}/runtime/python3.6/fn
+
+# python3.9
+COPY --chown=1003:1003 pythonruntime/fdk/python ${HOME}/runtime/python3.9
+COPY --chown=1003:1003 pythonruntime/pkg/runtime/python3 ${HOME}/runtime/python3.9
+COPY --chown=1003:1003 pythonruntime/fn/ ${HOME}/runtime/python3.9/fn
+COPY --chown=1003:1003 datasystem-*cp39-cp39-linux_x86_64.whl ${HOME}/runtime/python3.9/
+RUN pip3.9 install ${HOME}/runtime/python3.9/datasystem-*cp39-cp39-linux_x86_64.whl
+
+
+# python3.10
+COPY --chown=1003:1003 pythonruntime/fdk/python ${HOME}/runtime/python3.10
+COPY --chown=1003:1003 pythonruntime/pkg/runtime/python3 ${HOME}/runtime/python3.10
+COPY --chown=1003:1003 pythonruntime/fn/ ${HOME}/runtime/python3.10/fn
+
+# java
+COPY --chown=1003:1003 javaruntime/bin/entrypoint_runtime_java ${HOME}/bin/entrypoint
+COPY --chown=1003:1003 javaruntime/pkg/runtime/java/runtime-core-*.jar ${HOME}/runtime/java/
+COPY --chown=1003:1003 javaruntime/log4j2.xml ${HOME}/config/
+COPY --chown=1003:1003 config/runtime.json ${HOME}/config/
+COPY --chown=1003:1003 datasystem_x86_64.jar ${HOME}/runtime/java/
+
+# php
+COPY --chown=1003:1003 phpruntime/pkg/runtime ${HOME}/runtime
+
+#csharp
+COPY --chown=1003:1003 csharpruntime/netcoreapp2.1/*.dll ${HOME}/runtime/netcoreapp2.1/
+COPY --chown=1003:1003 csharpruntime/netcoreapp2.1/*.json ${HOME}/runtime/netcoreapp2.1/
+COPY --chown=1003:1003 csharpruntime/netcoreapp3.1/*.dll ${HOME}/runtime/netcoreapp3.1/
+COPY --chown=1003:1003 csharpruntime/netcoreapp3.1/*.json ${HOME}/runtime/netcoreapp3.1/
+
+COPY --chown=1003:1003 script/*  ${HOME}/bin/fastfreeze/
+RUN set -ex; \
+    if [ -e ${HOME}/bin/fastfreeze/fastfreeze-v1.3.0.tar.xz ]; then \
+        mv ${HOME}/bin/fastfreeze/fastfreeze-v1.3.0.tar.xz /opt/huawei/fastfreeze.tar.xz; \
+        tar -xvf /opt/huawei/fastfreeze.tar.xz -C /opt/huawei; \
+        rm -rf /opt/huawei/fastfreeze/bin/openssl; \
+        rm -rf /opt/huawei/fastfreeze.tar.xz; \
+    fi
+
+
+# Remove go source file
+RUN rm -f ${HOME}/runtime/*.go && \
+    rm -rf /node_modules/wsfsdk
+
+RUN find ${HOME}/runtime -type d | xargs chmod 550 && \
+    find ${HOME}/runtime -type f | xargs chmod 440 && \
+    find ${HOME}/bin -type d | xargs chmod 550 && \
+    find ${HOME}/bin -type f | xargs chmod 440 && \
+    find ${HOME}/config -type f | xargs chmod 440 && \
+    find /node_modules | xargs chown snuser:snuser && \
+    find /node_modules -type d | xargs chmod 550 && \
+    find /node_modules -type f | xargs chmod 440 && \
+    chmod 755 -R /opt/huawei && \
+    chown -R 1003:1003 /opt/huawei
+
+# runtime manager env
+ENV WORKER_UID=1000 \
+    WORKER_NAME=sn \
+    WORKER_GROUP_ID=1000 \
+    WORKER_GROUP_NAME=sn \
+    # overwrite
+    HOME=/home/sn \
+    DEPLOY=/home/sn/bin/runtime-manager \
+    SUPPORT_LANGUAGE=cpp11 \
+    TAR_CMD=tar_cmd
+
+RUN mkdir -m 550 ${HOME} && \
+    mkdir -m 550 ${HOME}/config && \
+    groupmod --new-name ${WORKER_GROUP_NAME} paas && \
+    usermod -l ${WORKER_NAME} paas -g ${WORKER_GROUP_ID} && \
+    usermod -s /sbin/nologin ${WORKER_NAME} && \
+    usermod -aG ${GROUP_NAME} ${WORKER_NAME} && \
+    chown -R ${WORKER_UID}:${WORKER_GROUP_ID} ${HOME} && \
+    rm -rf /tmp/CFF
+
+# runtime-manager
+COPY --chown=1000:1000 bin ${HOME}/bin
+COPY --chown=1000:1000 bin/runtime-manager ${DEPLOY}
+# custom runtime
+COPY --chown=1003:1003 config/custom-runtime-config.yaml ${HOME}/config
+
+# give runtime manager capabilities
+RUN setcap 'cap_dac_override,cap_fowner,cap_kill,cap_setgid,cap_setuid,cap_chown,cap_syslog,cap_sys_resource+ep' ${DEPLOY} && \
+    echo "sn    ALL=NOPASSWD:/bin/bash -c dmesg -T | tail -100" >> /etc/sudoers && \
+    find ${HOME}/bin -type d | xargs chmod 500 && \
+    find ${HOME}/bin -type f | xargs chmod 500 && \
+    find ${HOME}/config -type d | xargs chmod 550 && \
+    find ${HOME}/config -type f | xargs chmod 440 && \
+    echo -e '#!/bin/bash' >> /usr/bin/tar_cmd && \
+    echo -e 'exec tar --blocking-factor 256 "$@"' >> /usr/bin/tar_cmd && \
+    chmod 755 /usr/bin/tar_cmd
+
+
+USER ${WORKER_UID}
+
+EXPOSE 8080
+
+WORKDIR ${DEPLOY_DIR}
+
+ENTRYPOINT ["/bin/bash", "/home/sn/bin/entrypoint"]

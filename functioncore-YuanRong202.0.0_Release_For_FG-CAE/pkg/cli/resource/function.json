@@ -1,0 +1,49 @@
+{
+  "runtime": [
+    "Java8",
+    "Python3.6",
+    "Python3.9",
+    "Python2.7",
+    "Nodejs6.10",
+    "Nodejs8.10",
+    "Nodejs10.16",
+    "Nodejs12.13",
+    "Nodejs14.18"
+  ],
+  "deploymentInfo": [
+    {
+      "cpu": 300,
+      "memory": 128
+    },
+    {
+      "cpu": 400,
+      "memory": 256
+    },
+    {
+      "cpu": 600,
+      "memory": 512
+    },
+    {
+      "cpu": 800,
+      "memory": 768
+    },
+    {
+      "cpu": 1000,
+      "memory": 1024
+    },
+    {
+      "cpu": 1200,
+      "memory": 1280
+    },
+    {
+      "cpu": 1400,
+      "memory": 1536
+    },
+    {
+      "cpu": 1600,
+      "memory": 1792
+    }
+  ],
+  "maxMaxInstance": 1000,
+  "maxLayersSize": 5
+}

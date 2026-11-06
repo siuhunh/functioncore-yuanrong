@@ -1,0 +1,13 @@
+function:
+  name: helloworld
+  service: default
+  handler: index.handler
+  userData:
+    key1: value1
+    key2: value2
+  runtime: Python3.9
+  memorySize: 256
+  timeout: 60
+  minInstance: 0
+  maxInstance: 400
+  concurrentNum: 1

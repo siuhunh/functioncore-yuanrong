@@ -1,0 +1,9 @@
+apiVersion: v1
+appVersion: 3.1.0
+keywords:
+  - nfs
+  - storage
+maintainers:
+  - name: verwilst
+name: nfs-client-provisioner
+version: 1.2.8

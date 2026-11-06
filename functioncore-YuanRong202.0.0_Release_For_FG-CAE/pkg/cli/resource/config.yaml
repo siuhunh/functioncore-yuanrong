@@ -1,0 +1,17 @@
+config:
+  host: 7.185.18.123:31220
+  tenantID: c53626012ba84727b938ca8bf03108ef
+  clusterID: cluster001
+  enableHTTPS: false
+  auth:
+    ak: ""
+    sk: ""
+  minio:
+    endpoint: "play.min.io"
+    accessKeyID: ""
+    secretAccessKey: ""
+    bucket: ""
+  etcd:
+    url: [""]
+    userName: ""
+    password: ""

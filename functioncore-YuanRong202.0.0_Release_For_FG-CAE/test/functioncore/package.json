@@ -1,0 +1,22 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "main": "test_handler.js",
+    "license": "Apache-2.0",
+    "scripts": {
+        "test": "nyc mocha ./test_nodejs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jstevenperry/node-modules"
+    },
+    "devDependencies": {
+        "chai": "^4.2.0",
+        "istanbul": "^0.4.5",
+        "mocha": "^7.1.1",
+        "nyc": "^15.0.0",
+        "should": "^13.2.3",
+        "sinon": "^9.0.1",
+        "supertest": "^4.0.2"
+    }
+}

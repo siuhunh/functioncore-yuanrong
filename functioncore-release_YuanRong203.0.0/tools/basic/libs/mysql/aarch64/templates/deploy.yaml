@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mysql
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: junyisun/mysql:5.7-aarch64
+        name: mysql
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.password | quote }}  #Changeme
+        - name: MYSQL_USER
+          value: admin
+        - name: MYSQL_PASSWORD
+          value: {{ .Values.password | quote }}

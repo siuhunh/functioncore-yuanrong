@@ -1,0 +1,38 @@
+#!/bin/bash
+# Copyright (c) 2024 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+set -e
+
+# As no support for user isolation by default in docker, so limiting nproc here
+# causes limiting all user processes on the node.
+# Solution: limit by k8s podPidsLimit
+
+# limiting the number of file handles
+ulimit -n 1024
+
+# prevent from creating files that have incorrect permission
+umask 0027
+
+export LD_LIBRARY_PATH=${HOME}/lib:${LD_LIBRARY_PATH}
+
+exec ${DEPLOY} --fg_busproxy_ip="${POD_IP}" --fg_busproxy_port="8890" --worker_cpu_request="${WORKER_CPU_REQUEST}" --worker_cpu_limit="${WORKER_CPU_LIMIT}" \
+--worker_mem_limit="${WORKER_MEM_LIMIT}" --runtime_cpu_request="${RUNTIME_CPU_REQUEST}" --runtime_cpu_limit="${RUNTIME_CPU_LIMIT}" --runtime_mem_limit="${RUNTIME_MEM_LIMIT}" \
+--is_instance_vpa_started="${IS_INSTANCE_VPA_STARTED}" --update_machine_info_interval_ms="${UPDATE_MACHINE_INFO_INTERVAL_MS}" --instance_housekeeping_interval_ms="${INSTANCE_HOUSEKEEPING_INTERVAL_MS}" \
+--cpu_safe_margin="${CPU_SAFE_MARGIN}" --mem_safe_margin="${MEM_SAFE_MARGIN}" --min_allow_vpa_cpu_val="${MIN_ALLOW_VPA_CPU_VAL}" --min_allow_vpa_memory_val="${MIN_ALLOW_VPA_MEMORY_VAL}" \
+--vpa_histogram_half_life="${VPA_HISTOGRAM_HALFLIFET}" --vpa_histogram_ratio="${VPA_HISTOGRAM_RATIO}" --vpa_latency_sensitive_threshold="${LATENCY_SENSITIVE_THRESHOLD_MS}" \
+--vpa_cpu_high_usage_threshold="${CPU_HIGH_USAGE_THRESHOLD}" --migrate_initial_resource_strategy="${MIGRATE_INITIAL_RESOURCE_STRATEGY}" \
+--dynamic_load_sched_metric_time="${DYNAMIC_LOAD_SCHED_METRIC_TIME}" --cpu_metric_for_dynamic_load_sched="${CPU_METRIC}" --memory_metric_for_dynamic_load_sched="${MEMORY_METRIC}" \
+--scaling_factor_for_sched_req_res="${SCALING_FACTOR_FOR_SCHED_REQ_RES}" --address="${POD_IP}:8889" --node_id="${NODE_ID}" --log_config="${LOG_CONFIG}"
+
+exit 0

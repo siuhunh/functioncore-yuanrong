@@ -1,0 +1,42 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package common;
+
+option go_package = "./common";
+
+message CallRequest {
+    // The native event from user
+    bytes event = 1;
+    // "state" can be null
+    State state = 2;
+    string property = 4;
+}
+
+message CallResult {
+    bytes result = 1;
+    // "state" can be null
+    State state = 2;
+    string property = 4;
+}
+
+message State {
+    // State id
+    string id = 1;
+    // State content
+    string content = 2;
+}

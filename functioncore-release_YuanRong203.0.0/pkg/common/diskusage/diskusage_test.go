@@ -1,0 +1,300 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+package diskusage
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/fsnotify/fsnotify"
+	"github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"functioncore/pkg/common/constants"
+)
+
+const timeout = 500 * time.Millisecond
+
+func Test_New(t *testing.T) {
+	dir, err := ioutil.TempDir("", "*")
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "def"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "ignore"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "ignore", "ggg"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "def", "ghi"), os.ModePerm)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(dir, "abc", "aaa"), []byte("a"), os.ModePerm)
+	require.NoError(t, err)
+
+	hook := func(event fsnotify.Event) {
+		fmt.Println(event)
+	}
+
+	monitor, err := New(dir, AddProcessHooks(hook), Ignore(filepath.Join(dir, "abc", "ignore")))
+	require.NoError(t, err)
+	time.Sleep(timeout)
+	assert.Equal(t, int64(16385), monitor.Size())
+
+	err = ioutil.WriteFile(filepath.Join(dir, "abc", "aaa"), []byte("bbb"), os.ModePerm)
+	require.NoError(t, err)
+	time.Sleep(timeout)
+	assert.Equal(t, int64(16387), monitor.Size())
+
+	// generate an fsnotify overflow error
+	select {
+	case monitor.watcher.Errors <- fsnotify.ErrEventOverflow:
+	default:
+		t.Errorf("failed to generate an fsnotify overflow error")
+	}
+
+	time.Sleep(timeout)
+
+	err = os.RemoveAll(filepath.Join(dir, "abc"))
+	require.NoError(t, err)
+	time.Sleep(timeout)
+	assert.Equal(t, int64(4096), monitor.Size())
+}
+
+func Test_cacheUsageMax(t *testing.T) {
+	directory := &directory{}
+	cache := &cache{
+		directory: *directory,
+	}
+	m := &Monitor{
+		cache: cache,
+	}
+	m.cacheUsageMax()
+}
+
+func Test_NewCustomImageMonitor(t *testing.T) {
+	dir, err := ioutil.TempDir("", "*")
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "def"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "ignore"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "ignore", "ggg"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "def", "ghi"), os.ModePerm)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(dir, "abc", "aaa"), []byte("a"), os.ModePerm)
+	require.NoError(t, err)
+
+	hook := func(event fsnotify.Event) {
+		fmt.Println(event)
+	}
+
+	monitor, err := NewCustomImageMonitor(dir, AddProcessHooks(hook), Ignore(filepath.Join(dir, "abc", "ignore")))
+	require.NoError(t, err)
+	time.Sleep(timeout)
+	assert.Equal(t, int64(16385), monitor.Size())
+	assert.Equal(t, int64(5), monitor.FirstInode())
+
+	err = ioutil.WriteFile(filepath.Join(dir, "abc", "aaa"), []byte("bbb"), os.ModePerm)
+	require.NoError(t, err)
+	time.Sleep(timeout)
+	assert.Equal(t, int64(16387), monitor.Size())
+
+	// generate an fsnotify overflow error
+	select {
+	case monitor.watcher.Errors <- fsnotify.ErrEventOverflow:
+	default:
+		t.Errorf("failed to generate an fsnotify overflow error")
+	}
+
+	time.Sleep(timeout)
+
+	err = os.RemoveAll(filepath.Join(dir, "abc"))
+	require.NoError(t, err)
+	time.Sleep(timeout)
+	assert.Equal(t, int64(4096), monitor.Size())
+}
+
+func TestNewError(t *testing.T) {
+	convey.Convey("Test creates a new Monitor error", t, func() {
+		patch := gomonkey.ApplyFunc(filepath.Abs, func(path string) (string, error) {
+			return "", errors.New("err")
+		})
+		defer patch.Reset()
+		userCodeMonitor, err := New("ppp")
+		convey.So(userCodeMonitor, convey.ShouldBeNil)
+		convey.So(err, convey.ShouldNotBeNil)
+	})
+	convey.Convey("Test creates a new Monitor error 2 ", t, func() {
+		userCodeMonitor, err := New("ppp")
+		convey.So(userCodeMonitor, convey.ShouldBeNil)
+		convey.So(err, convey.ShouldNotBeNil)
+	})
+	convey.Convey("Test creates a new Monitor error 3", t, func() {
+		patch := gomonkey.ApplyFunc(os.Lstat, func(name string) (os.FileInfo, error) {
+			return nil, nil
+		})
+		patch2 := gomonkey.ApplyFunc(fsnotify.NewWatcher, func() (*fsnotify.Watcher, error) {
+			return nil, errors.New("err")
+		})
+		defer patch.Reset()
+		defer patch2.Reset()
+
+		userCodeMonitor, err := New("ppp")
+		convey.So(userCodeMonitor, convey.ShouldBeNil)
+		convey.So(err, convey.ShouldNotBeNil)
+	})
+	convey.Convey("Test creates a new Monitor error 3", t, func() {
+		patch := gomonkey.ApplyFunc(os.Lstat, func(name string) (os.FileInfo, error) {
+			return nil, nil
+		})
+		patch2 := gomonkey.ApplyFunc(AddProcessHooks, func(hooks ...ProcessHook) Opt {
+			return func(m *Monitor) error {
+				m.processHooks = append(m.processHooks, hooks...)
+				return errors.New("err")
+			}
+		})
+		defer patch.Reset()
+		defer patch2.Reset()
+		hook := func(event fsnotify.Event) {
+			return
+		}
+
+		userCodeMonitor, err := New("ppp", AddProcessHooks(hook))
+		convey.So(userCodeMonitor, convey.ShouldBeNil)
+		convey.So(err, convey.ShouldNotBeNil)
+	})
+	convey.Convey("Test creates a new Monitor error 4", t, func() {
+		flag := 0
+		patch := gomonkey.ApplyFunc(fsnotify.NewWatcher, func() (*fsnotify.Watcher, error) {
+			flag = 1
+			return nil, errors.New("err")
+		})
+		defer patch.Reset()
+		m := Monitor{}
+		m.reinitialize()
+		convey.So(flag, convey.ShouldEqual, 1)
+	})
+}
+func TestMonitor(t *testing.T) {
+	watcher, _ := fsnotify.NewWatcher()
+	monitor1 := &Monitor{
+		watcher: watcher,
+		cache:   &cache{rootDir: "./dir"},
+		stopCh:  make(chan struct{}),
+		rootDir: "./dir",
+	}
+	go monitor1.start(true)
+	monitor1.Close()
+	assert.NotEmpty(t, monitor1)
+}
+func TestSegmenter(t *testing.T) {
+	_, i := segmenter("aa", 0)
+	assert.Equal(t, i, -1)
+}
+
+func Test_FirstWithTimeOut(t *testing.T) {
+	dir, err := ioutil.TempDir("", "*")
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "def"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "ignore"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "ignore", "ggg"), os.ModePerm)
+	require.NoError(t, err)
+	err = os.Mkdir(filepath.Join(dir, "abc", "def", "ghi"), os.ModePerm)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(dir, "abc", "aaa"), []byte("a"), os.ModePerm)
+	require.NoError(t, err)
+
+	monitor, err := newMonitor(dir)
+	require.NoError(t, err)
+
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(&fsnotify.Watcher{}), "Add", func(w *fsnotify.Watcher, name string) error {
+		time.Sleep(1 * time.Second)
+		return nil
+	})
+	defer patch.Reset()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Microsecond)
+	defer cancel()
+	monitor.firstWithTimeOut(ctx)
+	require.Equal(t, monitor.firstSize, int64(constants.ExpansionUserDataMaxSize))
+}
+
+func Test_Close(t *testing.T) {
+	monitor := Monitor{
+		stopCh: make(chan struct{}),
+	}
+	for i := 0; i < 10; i++ {
+		go monitor.Close()
+	}
+	time.Sleep(1 * time.Second)
+	assert.Nil(t, monitor.stopCh)
+}
+
+func Test_NewCustomImageMonitor_Timeout(t *testing.T) {
+	convey.Convey("Test_NewCustomImageMonitor_Timeout", t, func() {
+		patches := [...]*gomonkey.Patches{}
+		defer func() {
+			for idx := range patches {
+				patches[idx].Reset()
+			}
+		}()
+
+		dir, err := ioutil.TempDir("", "*")
+		require.NoError(t, err)
+		err = os.Mkdir(filepath.Join(dir, "abc"), os.ModePerm)
+		require.NoError(t, err)
+		err = os.Mkdir(filepath.Join(dir, "abc", "ignore"), os.ModePerm)
+		require.NoError(t, err)
+		err = os.Mkdir(filepath.Join(dir, "abc", "def"), os.ModePerm)
+		require.NoError(t, err)
+		err = os.Mkdir(filepath.Join(dir, "abc", "ignore", "ggg"), os.ModePerm)
+		require.NoError(t, err)
+		err = ioutil.WriteFile(filepath.Join(dir, "abc", "aaa"), []byte("a"), os.ModePerm)
+		require.NoError(t, err)
+		err = os.Mkdir(filepath.Join(dir, "abc", "def", "ghi"), os.ModePerm)
+		require.NoError(t, err)
+
+		hk := func(event fsnotify.Event) {
+			fmt.Println(event)
+		}
+
+		mitro, err := NewCustomImageMonitor(dir, AddProcessHooks(hk), Ignore(filepath.Join(dir, "abc", "ignore")))
+		require.NoError(t, err)
+		assert.Equal(t, int64(16385), mitro.firstSize)
+
+		err = ioutil.WriteFile(filepath.Join(dir, "abc", "bbb"), []byte("bbb"), os.ModePerm)
+		require.NoError(t, err)
+		time.Sleep(timeout)
+		assert.Equal(t, int64(16388), mitro.Size())
+		assert.Equal(t, int64(16385), mitro.firstSize)
+	})
+}

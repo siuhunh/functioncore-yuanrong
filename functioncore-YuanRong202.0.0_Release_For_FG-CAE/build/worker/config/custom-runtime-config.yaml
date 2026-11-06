@@ -1,0 +1,15 @@
+{
+  "serverUrl": {
+    "readyPath": "/runtime/init/ready",
+    "nextPath": "/runtime/invocation/next",
+    "responsePath": "/runtime/invocation/response",
+    "errorPath": "/runtime/invocation/error"
+  },
+  "serverHeaders": {
+    "headerInvokeIDKey": "X-Request-Id",
+    "headerTraceIDKey": "X-Trace-Id"
+  },
+  "serverEnvKey": {
+    "runtimeApiAddr": "SN_RUNTIME_API"
+  }
+}

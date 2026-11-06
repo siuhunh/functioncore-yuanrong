@@ -1,0 +1,30 @@
+{
+  "config-key": {
+    "keys": {
+      "key": "df413d36287a2a0bf7eee8a4:7125362c567635cf3293ae7df836b95a565709471d493e849086abf7a9988f586e884dfd371855c69fca6e106d603a0b5fbf89914c7b6dcc004544e88c6fa7a4548f0a8dd272f28948c269e9fa4e875e",
+      "mac": "1d958e8e316e268534c891b062ba62a5c550dd646ce60f59c40698a748e1182d"
+    },
+    "description": "config-key"
+  },
+  "secretEncryptKey": {
+    "keys": {
+      "key": "2c63dc358e8ff9b39246ae8a:a04a1b5f0c8dd18989dd950625288a9c75d8d842f3bec38c6c58bb979dcec01af732ffaa657c9cbde18dc351f3a1cc51f4e915a4918f942cb70b21e32804d28cc56ea1c7ee5aa98f8414edd85c8bca53",
+      "mac": "d0b83ad19fda9d5f76a701dcb07a49be19638d3a5514c2b80932be5388e3efdc"
+    },
+    "description": "secretEncryptKey"
+  },
+  "workerProxyKey": {
+    "keys": {
+      "key": "f0b24a4a8e575da9483a4d18:9cd21ad679bb46bc54c4b2879f2f9e168ec1d67e4eaf048fd24cc6f2de4031d4cee7f50f325f0406744578c7b1fddb39d981b403e6193af537ddf33860411036aefb1a29f1decd960fc42a4cc048454c",
+      "mac": "0be0fb206c134657852080188b67118ee0b98cf42434ef9fa25580959e24c46c"
+    },
+    "description": "workerProxyKey"
+  },
+  "etcd-key": {
+    "keys": {
+      "key": "96f9744354c20a611df01ee6:fac1c89d8186676df7d93f2bf955d513fddc2bbd237599a3a85d110ee4d1341bed8a9dfcf0a5b13c9f509840e5aa15e9abfa562aee42c4b6d5206ffac75e9a31a19ed12823bcf3bc8099959d8a51ca68",
+      "mac": "ec16d9a41faf725c0b859ce603a70b3eb3c7495ad37436df068627ec6ce83e9a"
+    },
+    "description": "etcd-key"
+  }
+}

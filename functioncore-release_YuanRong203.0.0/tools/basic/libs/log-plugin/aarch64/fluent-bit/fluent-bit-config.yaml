@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-component-config
+  namespace: default
+  labels:
+    k8s-app: fluent-bit
+data:
+  fluent-bit.conf: |-
+    [SERVICE]
+        Flush          3
+        Log_Level      info
+        Daemon         off
+        Parsers_File   parser-system.conf
+
+    @INCLUDE input-function.conf
+    @INCLUDE input-runtime.conf
+    @INCLUDE input-system.conf
+    @INCLUDE input-console.conf
+    @INCLUDE output-system.conf
+    @INCLUDE output-function.conf
+    @INCLUDE output-console.conf
+  input-function.conf: |-
+    [INPUT]
+      Name              tail
+      Tag               function.*
+      Path              /home/sn/log/*/volumes/kubernetes.io~empty-dir/varlog/user-function.log
+      Path_Key          Logfile
+      Refresh_Interval  5
+      DB                /home/sn/log/function.db
+      Parser            function
+      Skip_Long_Lines   On
+      Buffer_Chunk_Size 32K
+      Buffer_Max_Size   32M
+  input-runtime.conf: |-
+    [INPUT]
+       Name              tail
+       Tag               system.runtime
+       Path              /home/snuser/log/*/volumes/kubernetes.io~empty-dir/runtimelog/*.log
+       Exclude_Path      /home/snuser/log/*/volumes/kubernetes.io~empty-dir/runtimelog/*.gz
+       Path_Key          Logfile
+       Refresh_Interval  5
+       DB                /home/snuser/log/runtime.db
+       Parser            system
+       Skip_Long_Lines   On
+       Buffer_Chunk_Size 32K
+       Buffer_Max_Size   32M
+  input-system.conf: |-
+    [INPUT]
+       Name              tail
+       Tag               system.*
+       Path              /home/sn/log/*/volumes/kubernetes.io~empty-dir/varlog/*.log
+       Exclude_Path      /home/sn/log/*/volumes/kubernetes.io~empty-dir/varlog/*.gz,/home/sn/log/*/volumes/kubernetes.io~empty-dir/varlog/user-function.log
+       Path_Key          Logfile
+       Refresh_Interval  5
+       DB                /home/sn/log/system.db
+       Parser            system
+       Skip_Long_Lines   On
+       Buffer_Chunk_Size 32K
+       Buffer_Max_Size   32M
+  input-console.conf: |-
+    [INPUT]
+      Name              tail
+      Tag               console.*
+      Path              /var/log/containers/*.log
+      Path_Key          Logfile
+      Refresh_Interval  5
+      DB                /home/sn/log/console.db
+      Parser            console
+      Skip_Long_Lines   On
+      Buffer_Chunk_Size 32K
+      Buffer_Max_Size   32M
+  output-function.conf: |-
+    [OUTPUT]
+        Name            es
+        Match           function.*
+        Host            es-aka-client
+        Port            9200
+        Logstash_Format On
+        Logstash_Prefix function
+        Retry_Limit     2
+  output-system.conf: |-
+    [OUTPUT]
+        Name            es
+        Match           system.*
+        Host            es-aka-client
+        Port            9200
+        Logstash_Format On
+        Logstash_Prefix system
+        Retry_Limit     2
+  output-console.conf: |-
+    [OUTPUT]
+        Name            es
+        Match           console.*
+        Host            es-aka-client
+        Port            9200
+        Logstash_Format On
+        Logstash_Prefix console
+        Retry_Limit     2
+  parser-system.conf: |-
+    [PARSER]
+        Name      system
+        Format    regex
+        Regex     ^\[(?<Time>[^ ]* [^ ]*) (?<Level>[^ ]*) (?<CallerKey>[^\]]*)\] \[(?<PodName>[^\]]*)\] (?<Message>.*)$
+    [PARSER]
+        Name      function
+        Format    json
+    [PARSER]
+        Name      console
+        Format    json

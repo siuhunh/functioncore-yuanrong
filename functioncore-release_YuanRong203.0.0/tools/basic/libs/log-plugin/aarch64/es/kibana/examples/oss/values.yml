@@ -1,0 +1,4 @@
+---
+
+image: "ghcr.io/moritalous/ghcr/kibana-arm64"
+elasticsearchHosts: "http://oss-master:9200"

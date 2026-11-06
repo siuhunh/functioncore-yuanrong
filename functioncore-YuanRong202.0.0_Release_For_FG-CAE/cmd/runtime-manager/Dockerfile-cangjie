@@ -1,0 +1,36 @@
+# Copyright (c) 2023 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+ARG  VERSION
+FROM runtime-manager:${VERSION}
+
+ENV PATH=${CANGJIE_HOME}/bin:${CANGJIE_HOME}/tools/bin:$PATH \
+    LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/linux_x86_64_llvm:${LD_LIBRARY_PATH}
+
+RUN mkdir -m 550 ${HOME}/runtime/cangjie1.0 && \
+    mkdir -m 550 ${HOME}/runtime/cangjie0.52.3
+# cangjie
+COPY --chown=1003:1003 cangjieruntime/cangjie1.0/bin/entrypoint_runtime_cangjie ${HOME}/bin/entrypoint
+COPY --chown=1003:1003 cangjieruntime/cangjie1.0/pkg/runtime/cangjie/bin ${HOME}/runtime/cangjie1.0
+COPY --chown=1003:1003 cangjieruntime/cangjie1.0/pkg/runtime/cangjie/yuanrong_runtime_sdk/libyuanrong_runtime_sdk_yuanrong_sdk.so ${HOME}/runtime/cangjie1.0
+
+# cangjie 0.52.3
+COPY --chown=1003:1003 cangjieruntime/cangjie0.52.3/bin/entrypoint_runtime_cangjie ${HOME}/bin/entrypoint
+COPY --chown=1003:1003 cangjieruntime/cangjie0.52.3/pkg/runtime/cangjie/bin ${HOME}/runtime/cangjie0.52.3
+COPY --chown=1003:1003 cangjieruntime/cangjie0.52.3/pkg/runtime/cangjie/yuanrong_runtime_sdk/libyuanrong_runtime_sdk_yuanrong_sdk.so ${HOME}/runtime/cangjie0.52.3
+
+RUN chmod 755 -R ${HOME}/runtime/cangjie1.0 && \
+    chmod 755 -R ${HOME}/runtime/cangjie0.52.3 && \
+    chown -R 1003:1003 /opt/huawei
+
+ENTRYPOINT ["/bin/bash", "/home/sn/bin/entrypoint"]

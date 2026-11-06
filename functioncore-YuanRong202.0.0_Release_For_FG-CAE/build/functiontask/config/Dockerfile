@@ -1,0 +1,55 @@
+# Copyright (c) 2021 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+USER root
+
+ENV LANG en_US.utf8
+
+ENV USER_UID=1002 \
+    USER_NAME=sn
+
+ENV GROUP_ID=${USER_UID} \
+    GROUP_NAME=${USER_NAME} \
+    HOME=/home/${USER_NAME}
+
+ENV FUNCTION_TASK=${HOME}/bin/functiontask \
+    FUNCTION_TASK_CONFIG_PATH=${HOME}/config/conf.json \
+    GODEBUG=madvdontneed=1
+
+RUN mkdir -p ${HOME}/bin && \
+    groupadd -g ${GROUP_ID} ${GROUP_NAME} && \
+    useradd -u ${USER_UID} -g ${GROUP_ID} -s /sbin/nologin ${USER_NAME} && \
+    chown -R ${USER_UID}:${GROUP_ID} ${HOME} && \
+    echo "sn    ALL=NOPASSWD:/bin/bash /home/sn/bin/sudo_init.sh" >> /etc/sudoers
+
+COPY --chown=1002:1002 bin ${HOME}/bin
+COPY --chown=1002:1002 bin/sudo_init.sh ${HOME}/bin/sudo_init.sh
+
+#Remove go source file
+RUN if [ -d ${HOME}/runtime ] ; then rm -f ${HOME}/runtime/*.go ; fi
+
+RUN chown -R ${USER_UID}:${GROUP_ID} /opt
+
+RUN chmod 700 ${HOME} && \
+chmod -R 500 ${HOME}/bin
+
+EXPOSE 8080
+
+USER ${USER_UID}
+
+WORKDIR ${HOME}
+
+ENTRYPOINT ["/bin/bash", "/home/sn/bin/entrypoint"]

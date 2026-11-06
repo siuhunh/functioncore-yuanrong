@@ -1,0 +1,73 @@
+# Copyright (c) 2021 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+FROM custom:1.0
+
+ENV LANG en_US.utf8
+
+ENV USER_UID=1002 \
+    USER_NAME=snuser \
+    GROUP_ID=1002 \
+    GROUP_NAME=${USER_NAME}
+
+ENV GROUP_ID=${USER_UID} \
+    GROUP_NAME=${USER_NAME} \
+    HOME=/home/${USER_NAME} \
+    LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib:/mnt/cli_codes/cpp:/mnt/cli_codes/cppbin \
+    SN_RUNTIME_SERVER_PORT=31530
+
+RUN mkdir -p ${HOME}/config
+
+RUN mkdir -p ${HOME}/log
+RUN mkdir -p ${HOME}/bin
+RUN groupadd -g ${GROUP_ID} ${GROUP_NAME} && \
+    useradd -u ${USER_UID} -g ${GROUP_ID} -s /sbin/nologin ${USER_NAME} && \
+    chown -R ${USER_UID}:${GROUP_ID} ${HOME} && \
+    chown -R ${USER_UID}:${GROUP_ID} /usr/local/lib/python3.7 /mnt
+
+copy --chown=1002:1002  pkg/runtime/cpp ${HOME}/runtime
+copy --chown=1002:1002  pkg/runtime/java ${HOME}/runtime
+copy --chown=1002:1002  pkg/runtime/nodejs ${HOME}/runtime
+copy --chown=1002:1002  pkg/runtime/python ${HOME}/runtime
+copy --chown=1002:1002  pkg/runtime/nodejs/snsdk.js /node_modules/snsdk/
+copy --chown=1002:1002  pkg/runtime/nodejs/snsdk/package.json /node_modules/snsdk/
+copy --chown=1002:1002  start_runtimer.sh ${HOME}/runtime
+copy --chown=1002:1002  nodejs-runtime-log.json ${HOME}/config
+copy --chown=1002:1002  python-runtime-log.json ${HOME}/config
+copy --chown=1002:1002  fdk/nodejs/util /node_modules/snc-javascript-sdk/util
+copy --chown=1002:1002  fdk/nodejs/index.js /node_modules/snc-javascript-sdk
+copy --chown=1002:1002  fdk/nodejs/*_pb.js /node_modules/snc-javascript-sdk/
+copy --chown=1002:1002  fdk/nodejs/node_modules /node_modules/
+copy --chown=1002:1002  fdk/nodejs/package.json /node_modules/snc-javascript-sdk
+copy --chown=1002:1002  fdk/python/sncsdk.py ${HOME}/runtime
+copy --chown=1002:1002  fdk/python/*_pb2.py ${HOME}/runtime/
+copy --chown=1002:1002  fdk/python/utils/ ${HOME}/runtime/utils/
+copy --chown=1002:1002  pkg/runtime/python/log.py ${HOME}/runtime/utils/
+
+# 拷贝动态库到镜像中
+COPY --chown=1002:1002  lib /usr/local/lib
+
+# Remove go source file
+RUN rm -f ${HOME}/runtime/*.go
+
+RUN chmod 700 ${HOME} && \
+chmod -R 700 ${HOME}/bin && \
+chmod 700 ${HOME}/config && \
+chmod -R 700 ${HOME}/runtime
+
+# RUN ${HOME}/bin/user_setup
+EXPOSE 8080
+
+USER ${USER_UID}
+
+WORKDIR ${HOME}/runtime

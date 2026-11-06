@@ -1,0 +1,66 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+import "invoke.proto";
+import "get.proto";
+import "filter.proto";
+import "deadlock.proto";
+import "readstate.proto";
+import "savestate.proto";
+import "settimeout.proto";
+import "terminate.proto";
+import "wait.proto";
+import "getinstance.proto";
+
+package adaptor;
+
+option go_package = "./adaptor";
+
+option java_package = "com.huawei.sn.msgstruct";
+option java_outer_classname = "CallRequest";
+
+message CallRequestPb {
+    int32 method = 1;
+    int32 source = 2;
+    repeated string reqIDList = 3;
+    oneof data {
+        invoke.RequestPb invokeReq = 4;
+        invoke.TaskRequestPb invokeTaskReq = 5;
+        invoke.TaskCrateStateQueueRequestPb invokeTaskCreateStateReq = 6;
+
+        invoke.OnCompleteRequestPb onCompleteReq = 7;
+
+        filter.RequestPb filterReq = 8;
+
+        getfuture.RequestPb getReq = 9;
+        getfuture.TaskRequestPb getTaskReq = 10;
+
+        readstate.RequestPb readReq = 11;
+
+        savestate.RequestPb saveReq = 12;
+
+        settimeout.RequestPb setTimeoutReq = 13;
+
+        terminate.RequestPb terminateReq = 14;
+
+        waitfuture.RequestPb waitReq = 16;
+
+        deadlock.StartRequestPb deadlockStartReq = 17;
+        deadlock.EndRequestPb deadlockEndReq = 18;
+        getinstance.RequestPb  getInstanceReq = 19;
+    }
+}

@@ -1,0 +1,103 @@
+# Copyright (c) 2021 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: local-cache-service
+  name: local-cache-service
+  namespace: {{ .Values.namespaceOverride }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-cache-service
+  template:
+    metadata:
+      labels:
+        app: local-cache-service
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - local-cache-service
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+      automountServiceAccountToken: false
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+          args:
+            - envsubst '$${ADDR},$${POD_IP}' < /home/nginx/conf.templates > /etc/nginx/conf.d/default.conf &&
+                nginx -c /etc/nginx/conf.d/default.conf -g "daemon off;"
+          name: local-cache-service
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: ADDR
+              value: {{ .Values.params.ADDR }}
+          ports:
+            - containerPort: 9000
+              name: minioport
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/cache/nginx/proxy-cache
+              name: proxy-cache
+            - mountPath: /home/nginx/
+              name: local-cache-service-config
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 9000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 9000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 12 }}
+      securityContext:
+{{ toYaml .Values.securityContext | indent 12 }}
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: local-cache-service-config
+          name: local-cache-service-config
+        - name: proxy-cache
+          emptyDir: {}

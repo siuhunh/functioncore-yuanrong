@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package deadlock;
+
+option go_package = "api/deadlock";
+
+option java_package = "com.huawei.sn.msgstruct";
+option java_outer_classname = "Deadlock";
+
+message ReqIDListPb {
+    repeated string reqIDs = 1;
+}
+
+message StartRequestPb {
+    string stateID = 1;
+    string state = 2;
+    repeated ReqIDListPb futureReqIDLists = 3;
+    string tenantID = 4;
+    string serviceID = 5;
+}
+
+message StartResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string deadlockID = 3;
+}
+
+message EndRequestPb {
+    string stateID = 1;
+    string deadlockID = 2;
+    string tenantID = 4;
+    string serviceID = 5;
+}
+
+message EndResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string state = 3;
+}

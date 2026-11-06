@@ -1,0 +1,13 @@
+function:
+  name: helloworld
+  service: default
+  maxInstance: 400
+  minInstance: 0
+  concurrentNum: 1
+  handler: com.huawei.example.JavaHandler::handleRequest
+  userData:
+    key1: value1
+    key2: value2
+  runtime: Java8
+  memorySize: 512
+  timeout: 15

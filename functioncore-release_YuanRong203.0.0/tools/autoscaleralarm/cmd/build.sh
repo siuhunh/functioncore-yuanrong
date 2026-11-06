@@ -1,0 +1,39 @@
+#!/bin/bash
+# Copyright (c) 2024 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+set -e
+
+# go module prepare
+export GO111MODULE=on
+export GOPROXY="https://cmc.centralrepo.rnd.huawei.com/artifactory/product_go/,https://cmc.centralrepo.rnd.huawei.com/artifactory/go-central-repo/"
+export NO_PROXY=${NO_PROXY},*.huawei.com
+export GONOSUMDB=*
+
+BASE_DIR=$(cd "$(dirname "$0")"; pwd)
+OUTPUT_DIR="${BASE_DIR}/output"
+PROJECT_DIR="${BASE_DIR}"
+MODULE_NAME="autoscaleralarm"
+
+#copy to output
+[ -d "${OUTPUT_DIR}" ] && rm -rf "${OUTPUT_DIR}"
+mkdir -p "${OUTPUT_DIR}"
+
+echo "autoscaler alarm module build"
+
+FLAGS='-linkmode=external -extldflags "-fPIC -fstack-protector-strong -Wl,-z,now,-z,relro,-z,noexecstack,-s -Wall -Werror"'
+
+#module build
+cd "${PROJECT_DIR}" || die "${PROJECT_DIR} not exist"
+
+go build -mod=mod -buildmode=pie -o ${OUTPUT_DIR}/"${MODULE_NAME}" main.go

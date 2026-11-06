@@ -1,0 +1,273 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package faas.worker.pb;
+
+option java_multiple_files = true;
+option java_package = "com.huawei.sn.runtime.rpc.generate";
+option go_package = "./;pb";
+
+// worker ===> runtime
+message LoadRequest {
+    // file name of entry function
+    string entry = 1;
+    // entry function name
+    string funcName = 2;
+    // env of user function
+    repeated string funcEnvs = 3;
+    // env of runtime
+    repeated string runtimeEnvs = 4;
+    // info of user storage, used in financial scenarios
+    repeated string storageInfo = 5;
+    // instance load function name
+    string instanceFuncName = 6;
+    string runningMode = 7;
+    bool enableClassIsolation = 8;
+    string traceID = 9;
+    bool enableBusClient = 10;
+    string nodeIP = 11;
+    string funcDigest = 12;
+    map<string, string> userData = 13;
+    map<string, string> extra = 14;
+    string podApplier = 15;
+}
+
+// runtime ===> worker
+message LoadResponse {
+    Error error = 1;
+    bool DirectFlag = 2;
+}
+
+// InitializerRequest is request to invoke initialize function in runtime
+// worker ===> runtime
+message InitializerRequest {
+    // Unique ID of invocation
+    string traceID = 1;
+    map<string, string> extra = 2;
+}
+
+// InitializerResponse is response of function initializer in runtime
+// runtime ===> worker
+message InitializerResponse {
+    Error error = 1;
+}
+
+// RestoreHookRequest is request to invoke restore function in runtime
+// worker ===> runtime
+message RestoreHookRequest {
+    // Unique ID of invocation
+    string traceID = 1;
+    string handler = 2;
+    int64 timeout = 3;
+    map<string, string> extra = 4;
+}
+
+// RestoreHookResponse is response of function restore in runtime
+// runtime ===> worker
+message RestoreHookResponse {
+    Error error = 1;
+}
+
+// InvokeRequest is request to invoke function in runtime
+// worker ===> runtime
+message InvokeRequest {
+    // Event may come from module "Frontend" or "FunctionTask",
+    // it's real format is to be determined.
+    bytes event = 1;
+    // Unique ID of invocation
+    string invokeID = 2;
+    // Unique ID of trace chain
+    string traceID = 3;
+    // extra info of invocation
+    map<string, string> extra = 4;
+    // futureID of this invoke request
+    string futureID = 5;
+}
+
+// InvokeResponse is response of function invocation in runtime
+// runtime ===> worker
+message InvokeResponse {
+    // Result may send to module "Frontend" or "FunctionTask",
+    // it's real format is to be determined.
+    bytes result = 1;
+    Error error = 2;
+    bool  cffHTTPResponse = 3;
+}
+
+// runtime ===> worker
+message HealthResponse {
+    // "OK" if health
+    string status = 1;
+}
+
+// runtime ===> worker
+message CustomMetricsReportResponse {
+    bytes result = 1;
+    Error error = 2;
+}
+
+// runtime ===> worker
+message FunctionLog {
+    string level = 1;
+    string timestamp = 2;
+    string content = 3;
+    string invokeID = 4;
+    string traceID = 5;
+    map<string, string> with = 6;
+    string stage = 7;
+    bool isStart = 8;
+    bool isFinish = 9;
+    string logType = 10;
+    int32 errorCode = 11;
+    // this summary doesn't count init duration
+    string summary = 12;
+    string liveDataTraceID = 13;
+}
+
+// runtime ===> worker
+message Metrics {
+    uint64 duration = 1;
+}
+
+// Error using in rpc
+message Error {
+    int32 code = 1;
+    string message = 2;
+    bytes dcCallStack = 3;
+}
+
+message StackElement {
+    string className = 1;
+    string methodName = 2;
+    string fileName  = 3;
+    int64  lineNumber = 4;
+    map<string, string> extension = 5;
+}
+
+message DcCallStack {
+    string language = 1;
+    string type = 2;
+    repeated StackElement stack = 3;
+}
+
+// Using when runtime calling other function
+// runtime ===> worker
+message CallRequest {
+    string callID = 1;
+    // Local function name
+    string source = 2;
+    // Target function name
+    string destination = 3;
+    // event from user's function
+    bytes event = 4;
+    // Unique ID of invocation
+    string invokeID = 5;
+    // Unique ID of trace chain
+    string traceID = 6;
+    // Indicates whether to invoke "functionTask" or function
+    string destAttribute = 7;
+    int32 timeout = 8;
+    // show caller's method name
+    string method = 9;
+    // caller's futureID, it helps worker to cancel request recursively
+    string futureID = 10;
+}
+
+// worker ===> runtime
+message CallResponse {
+    string callID = 1;
+    bytes result = 2;
+    Error error = 3;
+}
+
+// runtime ===> worker
+message InstanceRequest {
+    // source service name
+    string appID = 1;
+    bytes body = 2;
+    string method = 3;
+    string path = 4;
+    string query = 5;
+    // Target service name
+    string serviceName = 6;
+    // Target service port
+    string servicePort = 7;
+    // Unique id of request
+    string ID = 8;
+}
+
+message InstanceInfo {
+    string ip = 1;
+    string port = 2;
+    string status = 3;
+    string p2pPort = 4;
+    string nodeIP = 5;
+    string nodePort = 6;
+    string nodeName = 7;
+    string applier = 8;
+    string ownerIP = 9;
+    string instanceID = 10;
+}
+
+message InstanceResponse {
+    Error error = 1;
+    repeated InstanceInfo instanceInfos = 2;
+    // Unique id of request
+    string ID = 3;
+}
+
+// worker <===> runtime
+message CancelRequest {
+    string callID = 1;
+    string traceID = 2;
+    // futureID to cancel
+    string futureID = 3;
+    // force or non-force
+    bool force = 4;
+    // recursive mode
+    bool recursive = 5;
+}
+
+// runtime <===> worker
+message CancelResponse {
+    string callID = 1;
+    string traceID = 2;
+    bytes result = 3;
+    Error error = 4;
+}
+
+// PreStopRequest is request to invoke preStop function in runtime
+// worker ===> runtime
+message PreStopRequest {
+    // Unique ID of invocation
+    string traceID = 1;
+    map<string, string> extra = 2;
+}
+
+// PreStopResponse is response of function preStop in runtime
+// runtime ===> worker
+message PreStopResponse {
+    Error error = 1;
+}
+
+// UpdateAgencyRequest is request to invoke updaet agency in runtime
+// worker ===> runtime
+message UpdateAgencyRequest {
+    // Unique ID of invocation
+    string traceID = 1;
+    map<string, string> extra = 2;
+}

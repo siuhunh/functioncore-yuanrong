@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package filter;
+
+option go_package = "api/filter";
+
+option java_package = "com.huawei.sn.msgstruct";
+option java_outer_classname = "Filter";
+
+message CreateOptions{
+    int64 cpu = 1;
+    int64 memory = 2;
+}
+
+message RequestPb {
+    string key = 1;
+    string funcName = 2;
+    string stateID = 3;
+    string podName = 4;
+    string creator = 5;
+    CreateOptions options = 6;
+    string clientFuncName = 7;
+    string clientVersion = 8;
+    string clientTenantID = 9;
+}
+
+message ResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string stateID = 3;
+    string stateKey = 4;
+}

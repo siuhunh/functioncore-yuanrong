@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2024 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+// Package server define function to parse options
+package server
+
+import (
+	"fmt"
+	"net"
+	"os"
+
+	"github.com/spf13/cobra"
+
+	"functioncore/pkg/autoscaler/options"
+	"functioncore/pkg/common/constants"
+	"functioncore/pkg/common/logger/log"
+)
+
+// functionActivePortKey is target port for autoscaler
+const functionActivePortKey = "FUNCTION_ACTIVE_PORT"
+
+// ParseOptions -
+func ParseOptions(stopCh <-chan struct{}) *cobra.Command {
+	asConfig := options.NewAutoScalerOptions()
+	cmd := &cobra.Command{
+		Use:  "autoscaler",
+		Long: `the autoscaler is used for elastic decision-making of microservice instances`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("starting autoscaler api server!")
+
+			return Run(asConfig, stopCh)
+		},
+	}
+	cmd.SetArgs(os.Args)
+	fs := cmd.Flags()
+	podIP := os.Getenv(constants.PodIPEnvKey)
+	if net.ParseIP(podIP) == nil {
+		log.GetLogger().Errorf("failed to get pod ip of autoscaler from environment")
+		return nil
+	}
+	funcActivePort := os.Getenv(functionActivePortKey)
+	fs.StringP("listen-address", "l", podIP+":"+funcActivePort, "the autoscaler server listen address")
+	fs.StringP("config-file", "c", "/home/sn/config/autoscaler.conf",
+		"The autoscaler server config file path")
+	fs.StringP("log-path", "", "/home/sn/log", "the autoscaler log path")
+
+	if err := fs.Parse(os.Args); err != nil {
+		log.GetLogger().Errorf("parsed args of os with error %s", err.Error())
+		return nil
+	}
+	asConfig.ListenAddress, _ = fs.GetString("listen-address")
+	asConfig.ConfigFile, _ = fs.GetString("config-file")
+	asConfig.LogPath, _ = fs.GetString("log-path")
+	return cmd
+}

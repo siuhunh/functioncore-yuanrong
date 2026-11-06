@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2021 Huawei Technologies Co., Ltd
+ *
+ * This software is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ * http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+
+syntax = "proto3";
+
+package getfuture;
+
+option go_package = "api/getfuture";
+
+option java_package = "com.huawei.sn.msgstruct";
+option java_outer_classname = "Get";
+
+message RequestPb {
+    string futureID = 1;
+    string stateID = 2;
+    string state = 3;
+}
+
+message ResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string result = 3;
+    string state = 4;
+    bool updateState = 5;
+    bytes dcCallStack = 6;
+}
+
+message TaskRequestPb {
+    string futureID = 1;
+    string stateID = 2;
+}
+
+message TaskResponsePb {
+    int32 code = 1;
+    string message = 2;
+    string result = 3;
+    string log = 4;
+    bytes dcCallStack = 5;
+}

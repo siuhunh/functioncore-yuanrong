@@ -1,0 +1,24 @@
+### IDE
+.idea
+*.iml
+.vscode
+
+###go.sum
+*.sum
+
+### nodejs fdk node_modules
+node_modules/
+
+### protobuf
+*.pb.go
+*_pb.js
+*_pb2.py
+
+.project
+*.prefs
+
+### generated
+output/
+open_source/
+pkg/worker-manager/client/
+zz_generated.deepcopy.go

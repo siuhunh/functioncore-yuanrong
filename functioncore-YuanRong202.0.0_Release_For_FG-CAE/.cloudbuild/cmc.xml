@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <artifact>
+        <versionType>BVersion</versionType>
+        <repoType>Generic</repoType>
+        <id>
+            <offering>YuanRong</offering>
+            <version>YuanRong_101</version>
+            <snapshot>Y</snapshot>
+        </id>
+        <isClear>N</isClear>
+        <copies>
+            <copy>
+                     <source>output/*</source>
+                 <dest></dest>
+            </copy>
+        </copies>
+    </artifact>
+    <dependencies>
+    </dependencies>
+</project>

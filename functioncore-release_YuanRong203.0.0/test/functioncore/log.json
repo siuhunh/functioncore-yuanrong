@@ -1,0 +1,8 @@
+{
+  "filepath": "/home/sn/log",
+  "level": "DEBUG",
+  "compress": true,
+  "tick": 10,
+  "first": 10,
+  "thereafter": 5
+}

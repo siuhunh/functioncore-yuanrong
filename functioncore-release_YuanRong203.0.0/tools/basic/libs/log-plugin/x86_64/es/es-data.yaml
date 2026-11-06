@@ -1,0 +1,39 @@
+---
+# 使用镜像
+image: "elasticsearch"
+# es 集群名称
+clusterName: "es-aka"
+# es 节点名称
+nodeGroup: "data"
+# es 节点角色
+roles:
+  master: "false"
+  ingest: "true"
+  data: "true"
+# 副本数量
+replicas: 2
+# 资源限制
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+# PVC
+volumeClaimTemplate:
+  # 该volume只能被单个节点以读写的方式映射
+  accessModes: [ "ReadWriteOnce" ]
+  # 自动绑定动态 pv
+  storageClassName: "standard"
+  resources:
+    requests:
+      storage: 100Gi
+# 是否 SSH 开启改为 https
+protocol: http
+esConfig:
+  elasticsearch.yml: |
+    thread_pool.write.size: 2 
+    thread_pool.write.queue_size: 1000
+# 健康检查
+clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"

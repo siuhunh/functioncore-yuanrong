@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option go_package = "./;pb";
+
+message CacheCode {
+  string ObjectID = 1;
+  bytes Buffer = 2;
+  string Checksum = 3;
+}

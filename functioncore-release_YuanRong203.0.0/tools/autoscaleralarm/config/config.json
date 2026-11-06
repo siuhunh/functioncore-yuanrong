@@ -1,0 +1,30 @@
+{
+  "address": "",
+  "authConfig": {
+    "tlsProtocol": "TLSv1.2",
+    "tlsCiphers": "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+    "AKey": "",
+    "SKey": "",
+    "sslPath": "/home/autoscaleralarm/alarm/https",
+    "cipherPath": "/home/autoscaleralarm/alarm/cipher"
+  },
+  "locationInfo": {
+    "region": "AZ4",
+    "cluster": "bj4_az1",
+    "NodeIP": "${ip}",
+    "service": "autoscaler"
+  },
+  "alarmInfo": {
+    "importantLevel": "1",
+    "content": "autoscaler master node is not exist",
+    "resource": "28"
+  },
+  "caeRouteEtcd": {
+    "servers": ["${ip}:2379"],
+    "user": "root",
+    "password": "",
+    "cafile": "/home/sn/resource/routerEtcd/ca.pem",
+    "certfile": "/home/sn/resource/routerEtcd/cert.pem",
+    "keyfile": "/home/sn/resource/routerEtcd/key.pem"
+  }
+}

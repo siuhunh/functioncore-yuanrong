@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package scheduler_rpc;
+
+option go_package = "./;pb";
+
+service SchedulerRPC {
+    rpc AcquireInstance (AcquireInstanceReq) returns (AcquireInstanceRsp) {}
+    rpc RetainInstance (RetainInstanceReq) returns (RetainInstanceRsp) {}
+    rpc ReleaseInstance (ReleaseInstanceReq) returns (ReleaseInstanceRsp) {}
+    rpc Heartbeat (HeartbeatReq) returns (HeartbeatRsp) {}
+}
+
+message Error {
+    uint32 ErrorCode = 1;
+    string ErrorMessage = 2;
+}
+
+message WebSocketInsAcquireConfig {
+    string TargetIP = 1;
+    string TargetPort = 2;
+    string Path = 3;
+    uint32 Concurrency = 4;
+}
+
+message AcquireInstanceReq {
+    string TraceID = 1;
+    string FuncKeyWithRes = 2;
+    string Timeout = 3;
+    uint32 ReqType = 4;
+    WebSocketInsAcquireConfig WebSocketInsAcquireConfig = 5;
+}
+
+message AcquireInstanceRsp {
+    string InstanceKey = 1;
+    uint32 ProcessorID = 2;
+    uint32 ThreadNum = 3;
+    uint64 LeaseVersion = 4;
+    string InstanceIP = 5;
+    string InstancePort = 6;
+    string NodeIP = 7;
+    string NodePort = 8;
+    Error Error = 9;
+}
+
+message RetainInstanceReq {
+    string TraceID = 1;
+    string FuncKeyWithRes = 2;
+    string InstanceKey = 3;
+    uint32 ProcessorID = 4;
+    uint64 LeaseVersion = 5;
+}
+
+message RetainInstanceRsp {
+    Error Error = 1;
+}
+
+message ReleaseInstanceReq {
+    string TraceID = 1;
+    string FuncKeyWithRes = 2;
+    string InstanceKey = 3;
+    uint32 ProcessorID = 4;
+    uint64 LeaseVersion = 5;
+    bool IsWebSocketReq = 6;
+}
+
+message ReleaseInstanceRsp {}
+
+message HeartbeatReq {}
+
+message HeartbeatRsp {}

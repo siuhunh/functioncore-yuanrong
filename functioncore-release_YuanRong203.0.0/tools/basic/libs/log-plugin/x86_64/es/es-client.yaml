@@ -1,0 +1,35 @@
+---
+# 使用镜像
+image: "elasticsearch"
+# es 集群名称
+clusterName: "es-aka"
+# es 节点名称
+nodeGroup: "client"
+# es 节点角色
+roles:
+  master: "false"
+  ingest: "false"
+  data: "false"
+# 副本数量
+replicas: 2
+# 资源限制
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "8Gi"
+  limits:
+    cpu: "2000m"
+    memory: "8Gi"
+esJavaOpts: "-Xmx4g -Xms4g"
+#   是否启用 PVC
+persistence:
+  enabled: false
+# 设置 es-clinet 默认为 NodePort
+service:
+  type: NodePort
+  # 设置 NodePort 默认端口
+  nodePort: 30920
+# 是否 SSH 开启改为 https
+protocol: http
+# 健康检查
+clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"

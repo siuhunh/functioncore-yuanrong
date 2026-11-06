@@ -1,0 +1,88 @@
+# Copyright (c) 2021 Huawei Technologies Co., Ltd
+#
+# This software is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+# http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+
+FROM cpp:1.0
+
+# runtime env
+ENV USER_UID=1003 \
+    USER_NAME=snuser \
+    GROUP_ID=1003 \
+    GROUP_NAME=snuser \
+    HOME=/home/snuser \
+    LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/tmp
+
+# the second digit is set to 5, which gives the custom UID and GID permission to run a new runtime process
+RUN mkdir -m 550 ${HOME} && \
+    mkdir -m 550 ${HOME}/runtime && \
+    mkdir -m 550 ${HOME}/runtime/utils && \
+    mkdir -m 550 ${HOME}/bin && \
+    mkdir -m 750 ${HOME}/log && \
+    mkdir -m 750 ${HOME}/.local && \
+    groupadd -g ${GROUP_ID} ${GROUP_NAME} && \
+    useradd -u ${USER_UID} -g ${GROUP_ID} -s /sbin/nologin ${USER_NAME} && \
+    chown -R ${USER_UID}:${GROUP_ID} ${HOME}
+
+# cpp
+# USER_UID GROUP_ID 1003
+COPY --chown=1003:1003 cppruntime/bin/entrypoint_runtime ${HOME}/bin/entrypoint
+COPY --chown=1003:1003 cppruntime/bin/runtime ${HOME}/runtime/
+COPY --chown=1003:1003 cppruntime/lib /usr/local/lib
+COPY --chown=1003:1003 cppruntime/include /usr/local/include
+
+# Remove go source file
+RUN rm -f ${HOME}/runtime/*.go && \
+    rm -rf /node_modules/wsfsdk
+
+RUN find ${HOME}/runtime -type d | xargs chmod 550 && \
+    find ${HOME}/runtime -type f | xargs chmod 440 && \
+    find ${HOME}/bin -type d | xargs chmod 550 && \
+    find ${HOME}/bin -type f | xargs chmod 440
+
+# runtime manager env
+ENV WORKER_UID=1002 \
+    WORKER_NAME=sn \
+    WORKER_GROUP_ID=1002 \
+    WORKER_GROUP_NAME=sn \
+    # overwrite
+    HOME=/home/sn \
+    DEPLOY=/home/sn/bin/runtime-manager \
+    SUPPORT_LANGUAGE=cpp11
+
+RUN mkdir -m 550 ${HOME} && \
+    mkdir -m 550 ${HOME}/config && \
+    groupadd -g ${WORKER_GROUP_ID} ${WORKER_GROUP_NAME} && \
+    useradd -u ${WORKER_UID} -g ${WORKER_GROUP_ID} -s /sbin/nologin ${WORKER_NAME} && \
+    usermod -aG ${GROUP_NAME} ${WORKER_NAME} && \
+    chown -R ${WORKER_UID}:${WORKER_GROUP_ID} ${HOME} && \
+    rm -rf /tmp/CFF
+
+# runtime-manager
+COPY --chown=1002:1002 bin ${HOME}/bin
+COPY --chown=1002:1002 bin/runtime-manager ${DEPLOY}
+COPY --chown=1002:1002 bin/sudo_init.sh ${HOME}/bin/sudo_init.sh
+# custom runtime
+COPY --chown=1003:1003 config ${HOME}/config
+
+# give runtime manager capabilities
+RUN chmod 700 ${HOME} && \
+    echo "sn    ALL=NOPASSWD:/bin/bash /home/sn/bin/sudo_init.sh" >> /etc/sudoers && \
+    find ${HOME}/bin -type d | xargs chmod 550 && \
+    find ${HOME}/bin -type f | xargs chmod 550
+
+USER ${WORKER_UID}
+
+EXPOSE 8080
+
+WORKDIR ${HOME}
+
+ENTRYPOINT ["/bin/bash", "/home/sn/bin/entrypoint"]

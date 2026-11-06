@@ -1,0 +1,227 @@
+syntax = "proto3";
+
+option go_package = "./;pb";
+
+message FunctionProperty {
+    string TenantID = 1;
+    string FunctionName = 2;
+    string FunctionVersion = 3;
+    string InstanceID = 4;
+    string StateID = 5;
+    bool   CallKernel = 6;
+    string futureID = 7;
+}
+
+message CallRequest {
+    // log type
+    string LogType = 1;
+    // request data
+    bytes RawData = 2;
+    // request ID
+    uint64 RequestID = 3;
+    // userData
+    map<string, string> UserData = 4;
+    // cpu size
+    string CPU = 5;
+    // memory size
+    string Memory = 6;
+    // current function concurrency
+    uint32 Concurrency = 7;
+    // RetryFlag indicates whether the request is a retry request
+    bool RetryFlag = 8;
+    // persist response flag
+    bool PersistResponse = 9;
+    // state id
+    string StateID = 10;
+    bool DirectRequest = 11;
+    map<string, string> Extra = 12;
+    string WorkerID = 13;
+    bool IsStateFul = 14;
+}
+
+message CallResponse {
+    // Success: 0, Failed for others
+    uint32 ErrorCode = 1;
+    // Message for error
+    string ErrorMessage = 2;
+    // response data
+    bytes RawData = 3;
+    // logs
+    string Logs = 4;
+    // request ID
+    uint64 RequestID = 5;
+    // this summary counts init duration
+    string Summary = 6;
+    string FunctionKey = 7;
+    string InstanceID = 8;
+    map<string, string> Labels = 9;
+    // DcCallStack distributed convergence call stack
+    bytes DcCallStack = 10;
+    bool CffHTTPResponse = 11;
+}
+
+message CustomReportMetric {
+    string val = 1;
+    int64 customReportTime = 2;
+}
+
+message Message {
+    enum MessageType {
+        REGISTER = 0;
+        CALL_REQUEST = 1;
+        CALL_RESPONSE = 2;
+        CANCEL_REQUEST = 3;
+        CANCEL_RESPONSE = 4;
+        RECOVER_REQUEST = 5;
+        RECOVER_RESPONSE = 6;
+        REPORT_RUNTIME_METRICS_REQUEST = 7;
+        REPORT_RUNTIME_METRICS_RESPONSE = 8;
+        REPORT_RESOURCE_USAGE_REQUEST = 9;
+        REPORT_WORKER_EXIT_REQUEST = 10;
+        INIT_REQUEST = 11;
+        INIT_RESPONSE = 12;
+        PAUSE_REQUEST = 13;
+        PAUSE_RESPONSE = 14;
+        RUNTIME_REPORT = 15;
+        WORKER_REPORT = 16;
+        CHECK_RUNTIME = 17;
+        RECOVER_RUNTIME = 18;
+        REPORT_CAE_METRICS_REQUEST = 19;
+        REPORT_ERROR_MESSAGE_REQUEST = 20;
+    }
+    message CallMessage {
+        string traceID = 1;
+        FunctionProperty dst = 2;
+        CallRequest req = 3;
+    }
+    message CancelMessage {
+        string traceID = 1;
+        uint64 RequestID = 2;
+        string futureID = 3;
+        bool force = 4;
+        bool recursive = 5;
+        string workerID = 6;
+    }
+    message CancelResponse {
+        // Success: 0, Failed for others
+        uint32 ErrorCode = 1;
+        // Message for error
+        string ErrorMessage = 2;
+    }
+    message RecoverMessage {
+        string traceID = 1;
+        uint64 RequestID = 2;
+        string workerID = 3;
+    }
+    message RecoverResponse {
+        // Success: 0, Failed for others
+        uint32 ErrorCode = 1;
+        // Message for error
+        string ErrorMessage = 2;
+        // response data
+        bytes RawData = 3;
+    }
+    message ReportRuntimeMetricsMessage {
+        string FunctionURN = 1;
+        string PodName = 2;
+        string MetricsName = 3;
+        string MetricsValue = 4;
+        int64 GPUMem = 5;
+        int64 EphemeralStorage = 6;
+    }
+    message ReportResourceUsageMessage{
+        string FunctionKey = 1;
+        string PodName = 2;
+        double CpuUsage = 3;
+        double MemoryUsage = 4;
+        int64 CpuLimit = 5;
+        int64 MemoryLimit = 6;
+        int64 ReportTime = 7;
+    }
+    message ReportCaeMetricsMessage{
+        string FunctionKey = 1;
+        string PodName = 2;
+        double CpuUsageRate = 3;
+        double MemoryUsageRate = 4;
+        double ReceiveBytesPerSecond = 5;
+        double ReceivePackagePerSecond = 6;
+        double TransmitBytesPerSecond = 7;
+        double TransmitPackagePerSecond = 8;
+        double FileSystemReadBytesPerSecond = 9;
+        double FileSystemWriteBytesPerSecond = 10;
+        repeated CustomReportMetric CustomReportMetrics = 11;
+        int64 ReportTime = 12;
+        map<string, string> Properties = 13;
+        double FileSystemUsageRate = 14;
+        double FileSystemEmptySpace = 15;
+        double FileSystemCapacity = 16;
+        double MemoryUsage = 17;
+        double MemoryCapacity = 18;
+        double CpuUsage = 19;
+        double CpuCapacity = 20;
+    }
+    message ReportRuntimeMetricsResponse {
+        // Success: 0, Failed for others
+        uint32 ErrorCode = 1;
+        // Message for error
+        string ErrorMessage = 2;
+    }
+    message InitRequest {
+        string traceID = 1;
+    }
+    message InitResponse {
+        uint32 ErrorCode = 1;
+        string ErrorMessage = 2;
+        string runtimeSummary = 3;
+    }
+    message PauseRequest {
+    }
+    message PauseResponse {
+    }
+    message RuntimeReport {
+        string podName = 1;
+        string stage = 2;
+    }
+    message WorkerReport {
+        string traceID = 1;
+        uint32 ErrorCode = 2;
+        string ErrorMessage = 3;
+        string runtimeSummary = 4;
+        string runtimeLog = 5;
+    }
+    message CheckRuntime {
+        string traceID = 1;
+        bool shouldWait = 2;
+    }
+    message RecoverRuntime {
+        bool restartRuntime = 1;
+    }
+    message ReportErrorMessage{
+        string podName = 1;
+        string funcUrnWithVersion = 2;
+        string errorMessage = 3;
+        int64 uploadTime = 4;
+        map<string, string> Properties = 5;
+    }
+    MessageType type = 1;
+    FunctionProperty registerMessage = 2;
+    CallMessage callMessage = 3;
+    CallResponse callResponse = 4;
+    CancelMessage cancelMessage = 5;
+    CancelResponse cancelResponse = 6;
+    RecoverMessage recoverMessage = 7;
+    RecoverResponse recoverResponse = 8;
+    ReportRuntimeMetricsMessage reportRuntimeMetricsMessage = 9;
+    ReportRuntimeMetricsResponse reportRuntimeMetricsResponse = 10;
+    ReportResourceUsageMessage reportResourceUsageMessage = 11;
+    InitRequest initRequest = 12;
+    InitResponse initResponse = 13;
+    PauseRequest pauseRequest = 14;
+    PauseResponse pauseResponse = 15;
+    RuntimeReport runtimeReport = 16;
+    WorkerReport workerReport = 17;
+    CheckRuntime checkRuntime = 18;
+    RecoverRuntime recoverRuntime = 19;
+    ReportCaeMetricsMessage reportCaeMetricsMessage = 20;
+    ReportErrorMessage reportErrorMessage = 21;
+}
